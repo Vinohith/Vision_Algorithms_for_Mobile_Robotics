@@ -43,6 +43,16 @@ def select_keypoints(scores, num, r):
     return keypoints
 
 
+def describe_keypoints(img, keypoints, r):
+    descriptors = np.zeros(((2*r+1)**2, keypoints.shape[1]))
+    padded_img = np.pad(img, (r, r), 'constant', constant_values=0)
+    for i in range(keypoints.shape[1]):
+        [row, col] = [int(keypoints[:, i][0]) + r, int(keypoints[:, i][1]) + r]
+        # print(row, col)
+        descriptors[:, i] = padded_img[row-r:row+r+1, col-r:col+r+1].reshape(((2*r+1)**2, ))
+    return descriptors
+
+
 corner_patch_size = 9
 harris_kappa = 0.08
 num_keypoints = 200
@@ -56,8 +66,17 @@ print(img.shape)
 # Corner Response (Harris)
 harris_score = harris(img, corner_patch_size, harris_kappa)
 keypoints = select_keypoints(harris_score, num_keypoints, nonmaximum_supression_radius)
+descriptors = describe_keypoints(img, keypoints, descriptor_radius)
+des1 = descriptors[:, 0].reshape((19, 19))
+# for i in range(16):
+#     plt.axis('off')
+#     plt.subplot(4, 4, i+1)
+#     plt.imshow(descriptors[:, i].reshape((19, 19)), cmap=plt.get_cmap('gray'))
+# plt.show()
+
 
 plt.figure(figsize=(15,5))
+plt.axis('off')
 plt.imshow(img, cmap=plt.get_cmap('gray'))
 plt.scatter(keypoints[1], keypoints[0], marker='x', color='r')
 plt.show()
